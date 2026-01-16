@@ -18,6 +18,7 @@ export function EventCard({ event, className }: EventCardProps) {
   const category = getEventCategory(event.event.type);
   const colorClasses = CATEGORY_COLORS[category];
   const sanitizedData = getSanitizedEventData(event.event);
+  const isUserEvent = event.source === "USER" || category === "user_input";
 
   // Extract useful preview data
   const eventType = String(event.event.type ?? 'unknown');
@@ -28,12 +29,16 @@ export function EventCard({ event, className }: EventCardProps) {
       className={cn(
         "event-card border border-border/60 rounded-[1.5rem] p-4 bg-card/40",
         "hover:bg-card/70 hover:border-primary/25 transition-all duration-300",
+        isUserEvent ? "ml-12 border-lime-500/30 bg-lime-500/5" : "mr-12",
         className
       )}
     >
       {/* Header */}
       <div
-        className="flex items-start gap-3 cursor-pointer"
+        className={cn(
+          "flex items-start gap-3 cursor-pointer",
+          isUserEvent ? "flex-row-reverse text-right" : "flex-row"
+        )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {/* Expand indicator */}
@@ -47,7 +52,7 @@ export function EventCard({ event, className }: EventCardProps) {
 
         {/* Event info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className={cn("flex items-center gap-2 flex-wrap", isUserEvent && "justify-end")}>
             {/* Event type badge */}
             <Badge
               variant="outline"

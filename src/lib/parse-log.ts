@@ -1,9 +1,10 @@
-import { ParsedLogLine, Session, OpenAIEvent } from "./types";
+import { ParsedLogLine, Session, OpenAIEvent, LogSource } from "./types";
 
 /**
  * Parse a single log line into its components
- * Format: [timestamp] [uuid] {json}
- * Timestamp and UUID are optional, JSON is required
+ * Format: [timestamp] [uuid] [source] {json}
+ * Timestamp, UUID, and source are optional, JSON is required
+ * Source can be [OPENAI] or [USER]
  */
 export function parseLogLine(line: string, lineNumber: number): ParsedLogLine | null {
   const trimmedLine = line.trim();
@@ -11,6 +12,7 @@ export function parseLogLine(line: string, lineNumber: number): ParsedLogLine | 
 
   let timestamp: string | undefined;
   let sessionId: string | undefined;
+  let source: LogSource | undefined;
   let jsonStr: string;
 
   // Try to extract timestamp (ISO format at start)
@@ -29,6 +31,13 @@ export function parseLogLine(line: string, lineNumber: number): ParsedLogLine | 
     remaining = remaining.slice(uuidMatch[0].length);
   }
 
+  // Try to extract source tag [OPENAI] or [USER]
+  const sourceMatch = remaining.match(/^\[(OPENAI|USER)\]\s*/i);
+  if (sourceMatch) {
+    source = sourceMatch[1].toUpperCase() as LogSource;
+    remaining = remaining.slice(sourceMatch[0].length);
+  }
+
   // Rest should be JSON
   jsonStr = remaining;
 
@@ -37,6 +46,7 @@ export function parseLogLine(line: string, lineNumber: number): ParsedLogLine | 
     return {
       timestamp,
       sessionId,
+      source,
       event,
       rawLine: line,
       lineNumber,

@@ -11,6 +11,7 @@ export type EventCategory =
   | "response_text"
   | "function_call"
   | "rate_limits"
+  | "user_input"
   | "unknown";
 
 export interface OpenAIEvent {
@@ -28,9 +29,12 @@ export interface OpenAIEvent {
   [key: string]: unknown;
 }
 
+export type LogSource = "OPENAI" | "USER";
+
 export interface ParsedLogLine {
   timestamp?: string;
   sessionId?: string;
+  source?: LogSource;
   event: OpenAIEvent;
   rawLine: string;
   lineNumber: number;
@@ -47,6 +51,7 @@ export interface Session {
 
 // Event type to category mapping
 export const EVENT_CATEGORIES: Record<string, EventCategory> = {
+  // OpenAI server events
   "session.created": "session",
   "session.updated": "session",
   error: "error",
@@ -75,6 +80,19 @@ export const EVENT_CATEGORIES: Record<string, EventCategory> = {
   "response.function_call_arguments.delta": "function_call",
   "response.function_call_arguments.done": "function_call",
   "rate_limits.updated": "rate_limits",
+
+  // USER client events (client-to-server)
+  "input_audio_buffer.append": "user_input",
+  "input_audio_buffer.commit": "user_input",
+  "input_audio_buffer.clear": "user_input",
+  "conversation.item.truncate": "user_input",
+  "conversation.item.create": "user_input",
+  "conversation.item.delete": "user_input",
+  "response.cancel": "user_input",
+  "response.create": "user_input",
+  "session.update": "user_input",
+  // Custom client events (underscore format)
+  "conversation_input_text": "user_input",
 };
 
 export function getEventCategory(eventType: string): EventCategory {
@@ -94,6 +112,7 @@ export const CATEGORY_COLORS: Record<EventCategory, string> = {
   response_text: "bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/40 dark:border-indigo-500/30",
   function_call: "bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/40 dark:border-orange-500/30",
   rate_limits: "bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-500/40 dark:border-slate-500/30",
+  user_input: "bg-lime-500/20 text-lime-700 dark:text-lime-300 border-lime-500/40 dark:border-lime-500/30",
   unknown: "bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-500/40 dark:border-gray-500/30",
 };
 
